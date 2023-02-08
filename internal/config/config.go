@@ -2,6 +2,9 @@ package config
 
 import (
 	"fmt"
+	"path"
+	"path/filepath"
+	"runtime"
 
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
@@ -23,8 +26,18 @@ type RestConfig struct {
 	Port string
 }
 
+func getConfigPath() string {
+	_, b, _, _ := runtime.Caller(0)
+	basePath := filepath.Dir(b)
+
+	return path.Join(filepath.Dir(basePath), "..", "config", "config.yaml")
+}
+
 func NewMongoConfig(logger *zap.Logger) *MongoConfig {
-	viper.SetConfigFile("./config/config.yaml")
+
+	cfgPath := getConfigPath()
+
+	viper.SetConfigFile(cfgPath)
 	if err := viper.ReadInConfig(); err != nil {
 		logger.Error("read mongo config fail", zap.Error(err))
 	}

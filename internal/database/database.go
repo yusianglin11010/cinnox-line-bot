@@ -32,7 +32,7 @@ func (m *Mongo) initialize(cfg *config.MongoConfig) {
 	client, err := mongo.Connect(ctx,
 		options.Client().ApplyURI(uri))
 	if err != nil {
-		panic(fmt.Sprint("fail to connect to mongo", err))
+		panic(fmt.Sprint("fail to connect to mongo: ", err))
 	}
 
 	if err := client.Ping(context.TODO(), readpref.Primary()); err != nil {
@@ -76,7 +76,7 @@ func (m *Mongo) InitLineMessage(collName string) {
 
 	_, err = coll.Indexes().CreateOne(ctx, mod)
 	if err != nil {
-		panic(fmt.Sprint("create index fail", err))
+		panic(fmt.Sprint("create index fail: ", err))
 	}
 
 }
