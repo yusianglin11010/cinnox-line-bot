@@ -1,0 +1,12 @@
+linebot:
+  secret: {line-bot-secret}
+  token: {line-bot-token}
+
+mongo:
+  user: {mongo-user}
+  password: {mongo-password}
+  port: {mongo-port}
+  host: {mongo-host}
+
+rest:
+  port: {rest-port}
