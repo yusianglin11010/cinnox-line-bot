@@ -1,6 +1,8 @@
 package config
 
 import (
+	"fmt"
+
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
 )
@@ -8,7 +10,8 @@ import (
 type MongoConfig struct {
 	User     string
 	Password string
-	Port     string
+	Port     int
+	Host     string
 }
 
 type LineBotConfig struct {
@@ -28,12 +31,14 @@ func NewMongoConfig(logger *zap.Logger) *MongoConfig {
 
 	user := viper.GetString("mongo.user")
 	password := viper.GetString("mongo.password")
-	port := viper.GetString("mongo.port")
+	port := viper.GetInt("mongo.port")
+	host := viper.GetString("mongo.host")
 
 	return &MongoConfig{
 		User:     user,
 		Password: password,
 		Port:     port,
+		Host:     host,
 	}
 }
 
@@ -63,4 +68,14 @@ func NewRestConfig(logger *zap.Logger) *RestConfig {
 	return &RestConfig{
 		Port: port,
 	}
+}
+
+func MongoURI(config *MongoConfig) string {
+	return fmt.Sprintf(
+		"mongodb://%s:%s@%s:%d",
+		config.User,
+		config.Password,
+		config.Host,
+		config.Port,
+	)
 }
