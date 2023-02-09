@@ -33,7 +33,7 @@ func (m *mongoRepo) SaveMessage(logger *zap.Logger, ctx context.Context, user, m
 		Time:    messageTime,
 	}
 
-	col := m.client.Database("message").Collection("line")
+	col := m.client.Database(domain.ConstMongoMessageDB).Collection(domain.ConstMongoLineMessageCollection)
 	filter := bson.D{{"user", user}}
 
 	// check if user existed
@@ -46,7 +46,7 @@ func (m *mongoRepo) SaveMessage(logger *zap.Logger, ctx context.Context, user, m
 			}
 			_, err := col.InsertOne(ctx, lineDocument)
 			if err != nil {
-				logger.Error("insert message fail", zap.Error(err))
+				logger.Error("insert message failed", zap.Error(err))
 				return domain.ErrMongoCreateFail
 			} else {
 				return nil
@@ -61,7 +61,7 @@ func (m *mongoRepo) SaveMessage(logger *zap.Logger, ctx context.Context, user, m
 	update := bson.D{{"$push", bson.D{{"messages", msg}}}}
 	_, err := col.UpdateOne(ctx, filter, update)
 	if err != nil {
-		logger.Error("insert message fail", zap.String("user", user), zap.Error(err))
+		logger.Error("insert message failed", zap.String("user", user), zap.Error(err))
 		return domain.ErrMongoCreateFail
 	}
 	return nil
