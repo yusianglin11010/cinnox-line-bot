@@ -13,7 +13,9 @@ import (
 
 type DBRepo interface {
 	SaveMessage(logger *zap.Logger, ctx context.Context, user, message string, messageTime int64) error
+
 	GetMessage(logger *zap.Logger, ctx context.Context, user string, startDate, endDate int64) (*model.LineDocument, error)
+	IsUserExist(logger *zap.Logger, ctx context.Context, user string) (bool, error)
 }
 
 type mongoRepo struct {
@@ -26,6 +28,7 @@ func NewMongoRepo(client *mongo.Client) DBRepo {
 	}
 }
 
+// XXX: maybe the logic for saving message could be separated to save new document and update existed document
 func (m *mongoRepo) SaveMessage(logger *zap.Logger, ctx context.Context, user, message string, messageTime int64) error {
 
 	msg := model.Message{
@@ -33,36 +36,35 @@ func (m *mongoRepo) SaveMessage(logger *zap.Logger, ctx context.Context, user, m
 		Time:    messageTime,
 	}
 
-	col := m.client.Database("message").Collection("line")
+	col := m.client.Database(domain.ConstMongoMessageDB).Collection(domain.ConstMongoLineMessageCollection)
 	filter := bson.D{{"user", user}}
 
 	// check if user existed
-	if err := col.FindOne(ctx, filter).Decode(bson.M{}); err != nil {
-		// create a new document if user not exist
-		if err == mongo.ErrNoDocuments {
-			lineDocument := model.LineDocument{
-				User:     user,
-				Messages: []model.Message{msg},
-			}
-			_, err := col.InsertOne(ctx, lineDocument)
-			if err != nil {
-				logger.Error("insert message fail", zap.Error(err))
-				return domain.ErrMongoCreateFail
-			} else {
-				return nil
-			}
-		} else {
-			logger.Error("unexpected error", zap.Error(err))
-			return domain.ErrUnexpected
-		}
-	}
-
-	// push data to existed user's document
-	update := bson.D{{"$push", bson.D{{"messages", msg}}}}
-	_, err := col.UpdateOne(ctx, filter, update)
+	isUserExist, err := m.IsUserExist(logger, ctx, user)
 	if err != nil {
-		logger.Error("insert message fail", zap.String("user", user), zap.Error(err))
-		return domain.ErrMongoCreateFail
+		return domain.ErrUnexpected
+	}
+	// if user exist, push new data to existed document
+	if isUserExist {
+		update := bson.D{{"$push", bson.D{{"messages", msg}}}}
+		_, err := col.UpdateOne(ctx, filter, update)
+		if err != nil {
+			logger.Error("insert message failed", zap.String("user", user), zap.Error(err))
+			return domain.ErrMongoCreateFail
+		}
+		// if user not exist, insert new document
+	} else {
+		lineDocument := model.LineDocument{
+			User:     user,
+			Messages: []model.Message{msg},
+		}
+		_, err := col.InsertOne(ctx, lineDocument)
+		if err != nil {
+			logger.Error("insert message failed", zap.Error(err))
+			return domain.ErrMongoCreateFail
+		} else {
+			return nil
+		}
 	}
 	return nil
 }
@@ -99,4 +101,22 @@ func (m *mongoRepo) GetMessage(logger *zap.Logger, ctx context.Context, user str
 
 	return data, nil
 
+}
+
+func (m *mongoRepo) IsUserExist(logger *zap.Logger, ctx context.Context, user string) (bool, error) {
+	col := m.client.Database(domain.ConstMongoMessageDB).Collection(domain.ConstMongoLineMessageCollection)
+
+	filter := bson.D{{"user", user}}
+
+	if err := col.FindOne(ctx, filter).Decode(bson.M{}); err != nil {
+		// create a new document if user not exist
+		if err == mongo.ErrNoDocuments {
+			return false, nil
+		} else {
+			logger.Error("unexpected error", zap.Error(err))
+			return false, domain.ErrUnexpected
+		}
+	} else {
+		return true, nil
+	}
 }
