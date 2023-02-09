@@ -3,6 +3,7 @@ MONGO_INITDB_ROOT_USERNAME := admin
 MONGO_INITDB_ROOT_PASSWORD := password
 MONGO_CONTAINER_NAME := mongo
 MONGO_PORT := 27017
+NETWORK := cinnox-network
 
 dev:
 	@echo "check docker"
@@ -17,10 +18,13 @@ dev:
 	fi
 	@echo "start docker runtime"
 	@colima start
+	@echo "create docker network"
+	@docker network create ${NETWORK}
 	@echo "start mongo service on port ${MONGO_PORT}"
 	@docker run -d \
 		-p 27017:27017 \
 			--name ${MONGO_CONTAINER_NAME} \
+			--network ${NETWORK} \
 			-e MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME} \
 			-e MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD} \
 		${MONGO_IMAGE}

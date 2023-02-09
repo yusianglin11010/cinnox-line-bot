@@ -3,6 +3,7 @@ package database
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/yusianglin11010/cinnox-line-bot/internal/config"
 	"go.mongodb.org/mongo-driver/bson"
@@ -27,7 +28,7 @@ func Close() {
 }
 
 func (m *Mongo) initialize(cfg *config.MongoConfig) {
-	ctx := context.Background()
+	ctx, _ := context.WithTimeout(context.Background(), 3*time.Second)
 	uri := config.MongoURI(cfg)
 	client, err := mongo.Connect(ctx,
 		options.Client().ApplyURI(uri))

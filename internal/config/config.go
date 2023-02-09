@@ -56,7 +56,9 @@ func NewMongoConfig(logger *zap.Logger) *MongoConfig {
 }
 
 func NewLineBotConfig(logger *zap.Logger) *LineBotConfig {
-	viper.SetConfigFile("./config/config.yaml")
+	cfgPath := getConfigPath()
+
+	viper.SetConfigFile(cfgPath)
 	if err := viper.ReadInConfig(); err != nil {
 		logger.Error("read linebot config fail", zap.Error(err))
 	}
@@ -71,7 +73,9 @@ func NewLineBotConfig(logger *zap.Logger) *LineBotConfig {
 }
 
 func NewRestConfig(logger *zap.Logger) *RestConfig {
-	viper.SetConfigFile("./config/config.yaml")
+	cfgPath := getConfigPath()
+
+	viper.SetConfigFile(cfgPath)
 	if err := viper.ReadInConfig(); err != nil {
 		logger.Error("read rest config fail", zap.Error(err))
 	}
@@ -91,4 +95,24 @@ func MongoURI(config *MongoConfig) string {
 		config.Host,
 		config.Port,
 	)
+}
+
+func WriteConfig() error {
+	cfgPath := getConfigPath()
+
+	viper.SetConfigFile(cfgPath)
+	viper.BindEnv("linebot.secret", "LINE_SECRET")
+	viper.BindEnv("linebot.token", "LINE_TOKEN")
+
+	viper.BindEnv("mongo.user", "MONGO_USER")
+	viper.BindEnv("mongo.password", "MONGO_PASSWORD")
+	viper.BindEnv("mongo.port", "MONGO_PORT")
+	viper.BindEnv("mongo.host", "MONGO_HOST")
+
+	viper.BindEnv("rest.port", "REST_PORT")
+	err := viper.WriteConfigAs(cfgPath)
+	if err != nil {
+		return err
+	}
+	return nil
 }

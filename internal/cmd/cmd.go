@@ -2,9 +2,9 @@ package cmd
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/spf13/cobra"
+	"github.com/yusianglin11010/cinnox-line-bot/internal/config"
 	"github.com/yusianglin11010/cinnox-line-bot/internal/database"
 )
 
@@ -20,6 +20,21 @@ var CreateCollCmd = &cobra.Command{
 		} else {
 			fmt.Printf("Collection %s created\n", args[0])
 		}
-		os.Exit(1)
+	},
+}
+
+var CreateConfig = &cobra.Command{
+	Use:   "config",
+	Short: "Create a config from environment variables",
+	Args:  cobra.ExactArgs(0),
+	Run: func(cmd *cobra.Command, args []string) {
+
+		err := config.WriteConfig()
+		if err != nil {
+			fmt.Printf("%s", err.Error())
+		} else {
+			fmt.Printf("Config created\n")
+		}
+
 	},
 }
