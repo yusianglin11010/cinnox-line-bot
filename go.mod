@@ -6,6 +6,7 @@ require (
 	github.com/gin-contrib/cors v1.4.0
 	github.com/gin-gonic/gin v1.8.2
 	github.com/google/uuid v1.3.0
+	github.com/line/line-bot-sdk-go v7.8.0+incompatible
 	github.com/line/line-bot-sdk-go/v7 v7.19.0
 	github.com/spf13/cobra v1.6.1
 	github.com/spf13/viper v1.15.0

@@ -3,7 +3,7 @@ package linebot
 import (
 	"fmt"
 
-	"github.com/line/line-bot-sdk-go/v7/linebot"
+	"github.com/line/line-bot-sdk-go/linebot"
 	"github.com/yusianglin11010/cinnox-line-bot/internal/config"
 )
 

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/gin-contrib/cors"
@@ -17,10 +16,9 @@ import (
 	"github.com/yusianglin11010/cinnox-line-bot/internal/usecase"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
-)
+) 
 
 func main() {
-	fmt.Println("Hello Cinnox!")
 	logger, _ := zap.NewProduction(zap.AddStacktrace(zapcore.FatalLevel))
 	dbConfig := config.NewMongoConfig(logger)
 	restConfig := config.NewRestConfig(logger)

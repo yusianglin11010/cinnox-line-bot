@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/line/line-bot-sdk-go/v7/linebot"
+	"github.com/line/line-bot-sdk-go/linebot"
 	"github.com/yusianglin11010/cinnox-line-bot/internal/domain"
 	"go.uber.org/zap"
 )
@@ -118,8 +118,42 @@ func (h *Handler) GetMessage(c *gin.Context) {
 
 }
 
+type pushMessageReq struct {
+	User    string `json:"user"`
+	Content string `json:"content"`
+}
+
+type pushMessageResp struct {
+	Status  string `json:"status"`
+	User    string `json:"user"`
+	Content string `json:"content"`
+}
+
 func (h *Handler) PushMessage(c *gin.Context) {
-	panic("not implemented")
+	logger := c.MustGet("logger").(*zap.Logger)
+
+	req := pushMessageReq{}
+
+	if err := c.Bind(&req); err != nil {
+		logger.Error("bind request failed", zap.Error(err))
+
+		handleError(c, http.StatusBadRequest, domain.ErrInvalidParameter.Error())
+		return
+	}
+
+	if err := h.lineBotUseCase.PushMessage(logger, req.User, req.Content); err != nil {
+		handleError(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	resp := pushMessageResp{
+		Status:  "success",
+		User:    req.User,
+		Content: req.Content,
+	}
+
+	c.JSON(http.StatusOK, resp)
+	return
 }
 
 type errResp struct {

@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/line/line-bot-sdk-go/v7/linebot"
+	"github.com/line/line-bot-sdk-go/linebot"
 	"github.com/yusianglin11010/cinnox-line-bot/internal/database/model"
 	"github.com/yusianglin11010/cinnox-line-bot/internal/domain"
 	"github.com/yusianglin11010/cinnox-line-bot/internal/repository"
@@ -48,5 +48,22 @@ func (uc *lineBotUseCase) GetMessage(logger *zap.Logger, user string, startTime,
 }
 
 func (uc *lineBotUseCase) PushMessage(logger *zap.Logger, user, content string) error {
-	panic("not implemented")
+	ctx := context.TODO()
+	isUserExist, err := uc.dbRepo.IsUserExist(logger, ctx, user)
+
+	if err != nil {
+		return domain.ErrUnexpected
+	}
+	if !isUserExist {
+		return domain.ErrUserNotExisted
+	}
+
+	msg := linebot.NewTextMessage(content)
+
+	_, err = uc.lineBotClient.PushMessage(user, msg).Do()
+	if err != nil {
+		logger.Error("push message failed", zap.Error(err))
+		return err
+	}
+	return nil
 }
