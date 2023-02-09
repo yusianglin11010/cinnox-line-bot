@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/line/line-bot-sdk-go/v7/linebot"
+	"github.com/yusianglin11010/cinnox-line-bot/internal/database/model"
 	"github.com/yusianglin11010/cinnox-line-bot/internal/domain"
 	"github.com/yusianglin11010/cinnox-line-bot/internal/repository"
 	"go.uber.org/zap"
@@ -34,8 +35,16 @@ func (uc *lineBotUseCase) ReceiveMessage(logger *zap.Logger, user, content, repl
 	return nil
 }
 
-func (uc *lineBotUseCase) GetMessage(logger *zap.Logger, user string, startTime, endTime int64) error {
-	panic("not implemented")
+func (uc *lineBotUseCase) GetMessage(logger *zap.Logger, user string, startTime, endTime int64) (*model.LineDocument, error) {
+	res, err := uc.dbRepo.GetMessage(logger, context.TODO(), user, startTime, endTime)
+	if err != nil {
+		if err == domain.ErrUserNotExisted {
+			return nil, err
+		}
+		logger.Error("mongo db get message failed", zap.Error(err))
+		return nil, err
+	}
+	return res, nil
 }
 
 func (uc *lineBotUseCase) PushMessage(logger *zap.Logger, user, content string) error {

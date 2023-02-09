@@ -60,10 +60,77 @@ func (h *Handler) ReceiveMessage(c *gin.Context) {
 	c.JSON(http.StatusOK, "")
 }
 
+type getMessageReq struct {
+	User      string `form:"user" binding:"required"`
+	StartTime int64  `form:"start_time"`
+	EndTime   int64  `form:"end_time"`
+}
+
+type getMessageResp struct {
+	Status   string        `json:"status"`
+	User     string        `json:"user"`
+	Messages []messageResp `json:"messages"`
+}
+
+type messageResp struct {
+	Time    int64  `json:"time"`
+	Content string `json:"content"`
+}
+
 func (h *Handler) GetMessage(c *gin.Context) {
-	panic("not implemented")
+	logger := c.MustGet("logger").(*zap.Logger)
+
+	req := getMessageReq{}
+	if err := c.BindQuery(&req); err != nil {
+		logger.Error("bind request failed", zap.Error(err))
+
+		handleError(c, http.StatusBadRequest, domain.ErrInvalidParameter.Error())
+		return
+	}
+
+	lineDocument, err := h.lineBotUseCase.GetMessage(logger, req.User, req.StartTime, req.EndTime)
+	if err != nil {
+		if err == domain.ErrUserNotExisted {
+			handleError(c, http.StatusBadRequest, err.Error())
+			return
+		} else {
+			handleError(c, http.StatusInternalServerError, domain.ErrUnexpected.Error())
+			return
+		}
+	}
+	msgResp := []messageResp{}
+	for _, msg := range lineDocument.Messages {
+		msgResp = append(msgResp,
+			messageResp{
+				Time:    msg.Time,
+				Content: msg.Content,
+			})
+	}
+
+	resp := getMessageResp{
+		Status:   "Success",
+		User:     lineDocument.User,
+		Messages: msgResp,
+	}
+
+	c.JSON(http.StatusOK, resp)
+	return
+
 }
 
 func (h *Handler) PushMessage(c *gin.Context) {
 	panic("not implemented")
+}
+
+type errResp struct {
+	Status  string `json:"status"`
+	Message string `json:"message"`
+}
+
+func handleError(c *gin.Context, status int, msg string) {
+
+	c.JSON(status, errResp{
+		Status:  "Failed",
+		Message: msg,
+	})
 }

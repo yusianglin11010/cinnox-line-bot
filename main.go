@@ -16,11 +16,12 @@ import (
 	"github.com/yusianglin11010/cinnox-line-bot/internal/transport"
 	"github.com/yusianglin11010/cinnox-line-bot/internal/usecase"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 )
 
 func main() {
 	fmt.Println("Hello Cinnox!")
-	logger, _ := zap.NewProduction()
+	logger, _ := zap.NewProduction(zap.AddStacktrace(zapcore.FatalLevel))
 	dbConfig := config.NewMongoConfig(logger)
 	restConfig := config.NewRestConfig(logger)
 	lineBotConfig := config.NewLineBotConfig(logger)
@@ -45,6 +46,7 @@ func main() {
 	server.Use(cors.Default())
 	server.Use(middleware.AddLoggerToContext(logger))
 	server.Use(middleware.AddLineBotClient(lineBotClient))
+	server.Use(middleware.RecoveryFromPanic())
 
 	server.GET("/alive", handler.GetHealth)
 	server.GET("/message", handler.GetMessage)
