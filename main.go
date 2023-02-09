@@ -13,7 +13,7 @@ import (
 	"github.com/yusianglin11010/cinnox-line-bot/internal/handler"
 	"github.com/yusianglin11010/cinnox-line-bot/internal/middleware"
 	"github.com/yusianglin11010/cinnox-line-bot/internal/repository"
-	"github.com/yusianglin11010/cinnox-line-bot/internal/transport"
+	"github.com/yusianglin11010/cinnox-line-bot/internal/repository/linebot"
 	"github.com/yusianglin11010/cinnox-line-bot/internal/usecase"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -37,7 +37,7 @@ func main() {
 	}
 
 	dbRepo := repository.NewMongoRepo(database.GetMongo().Client)
-	lineBotClient := transport.NewLineBotClient(lineBotConfig)
+	lineBotClient := linebot.NewLineBotClient(lineBotConfig)
 	lineBotUseCase := usecase.NewLineBotUseCase(dbRepo, lineBotClient)
 
 	handler := handler.NewLineBotHandler(logger, lineBotUseCase)
