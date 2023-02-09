@@ -51,17 +51,17 @@ func (m *Mongo) close() {
 	}
 }
 
-func (m *Mongo) InitLineMessage(collName string) {
+func (m *Mongo) InitLineMessage(collName string) error {
 	db := m.Client.Database("message")
 	ctx := context.Background()
 
 	collections, err := db.ListCollectionNames(ctx, bson.D{{}})
 	if err != nil {
-		panic(err)
+		return fmt.Errorf("failed to list collection names: %s", err.Error())
 	}
 	for _, name := range collections {
 		if name == collName {
-			panic(fmt.Sprint("collection existed: ", collName))
+			return fmt.Errorf("collection %s already exists", collName)
 		}
 	}
 
@@ -76,7 +76,8 @@ func (m *Mongo) InitLineMessage(collName string) {
 
 	_, err = coll.Indexes().CreateOne(ctx, mod)
 	if err != nil {
-		panic(fmt.Sprint("create index fail: ", err))
+		return fmt.Errorf("failed to create index: %v", err)
 	}
 
+	return nil
 }

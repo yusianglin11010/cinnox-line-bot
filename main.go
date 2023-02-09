@@ -1,8 +1,6 @@
 package main
 
 import (
-	"log"
-
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/cobra"
@@ -16,7 +14,7 @@ import (
 	"github.com/yusianglin11010/cinnox-line-bot/internal/usecase"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
-) 
+)
 
 func main() {
 	logger, _ := zap.NewProduction(zap.AddStacktrace(zapcore.FatalLevel))
@@ -31,7 +29,7 @@ func main() {
 	rootCmd := &cobra.Command{Use: "./app-name"}
 	rootCmd.AddCommand(cmd.CreateCollCmd)
 	if err := rootCmd.Execute(); err != nil {
-		log.Fatalf("Error executing command: %v", err)
+		logger.Error("error executing command", zap.Error(err))
 	}
 
 	dbRepo := repository.NewMongoRepo(database.GetMongo().Client)
@@ -40,7 +38,7 @@ func main() {
 
 	handler := handler.NewLineBotHandler(logger, lineBotUseCase)
 
-	server := gin.Default()
+	server := gin.New()
 	server.Use(cors.Default())
 	server.Use(middleware.AddLoggerToContext(logger))
 	server.Use(middleware.AddLineBotClient(lineBotClient))
