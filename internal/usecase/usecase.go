@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/line/line-bot-sdk-go/linebot"
@@ -24,7 +25,8 @@ func NewLineBotUseCase(db repository.DBRepo, bot *linebot.Client) domain.LineBot
 }
 
 func (uc *lineBotUseCase) ReceiveMessage(logger *zap.Logger, user, content, replyToken string) error {
-	if _, err := uc.lineBotClient.ReplyMessage(replyToken, linebot.NewTextMessage(domain.ConstReplyMessage)).Do(); err != nil {
+	replyMsg := fmt.Sprintf("Hello, your user ID is:  %s\n%s", user, domain.ConstReplyMessage)
+	if _, err := uc.lineBotClient.ReplyMessage(replyToken, linebot.NewTextMessage(replyMsg)).Do(); err != nil {
 		logger.Error("line bot client reply message failed", zap.Error(err))
 		return err
 	}
