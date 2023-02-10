@@ -28,7 +28,7 @@ func (uc *lineBotUseCase) ReceiveMessage(logger *zap.Logger, user, content, repl
 		logger.Error("line bot client reply message failed", zap.Error(err))
 		return err
 	}
-	if err := uc.dbRepo.SaveMessage(logger, context.TODO(), user, content, time.Now().UnixMicro()); err != nil {
+	if err := uc.dbRepo.SaveMessage(logger, context.TODO(), user, content, time.Now().Unix()); err != nil {
 		logger.Error("mongo db save message failed", zap.Error(err))
 		return err
 	}
