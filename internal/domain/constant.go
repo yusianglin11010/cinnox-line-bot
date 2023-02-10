@@ -6,4 +6,8 @@ const (
 	ConstMongoMessageDB = "message"
 	ConstMongoLineMessageCollection = "line"
 
+	ConstResponseSuccess = "Success"
+	ConstResponseFailed = "Failed"
+
+
 )

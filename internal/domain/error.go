@@ -10,4 +10,5 @@ var (
 	ErrMongoGetFail    = errors.New("failed to get mongo data")
 
 	ErrUserNotExisted = errors.New("user not exist")
+	ErrNoDocuments = errors.New("no document found")
 )

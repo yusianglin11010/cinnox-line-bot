@@ -36,9 +36,18 @@ func (uc *lineBotUseCase) ReceiveMessage(logger *zap.Logger, user, content, repl
 }
 
 func (uc *lineBotUseCase) GetMessage(logger *zap.Logger, user string, startTime, endTime int64) (*model.LineDocument, error) {
-	res, err := uc.dbRepo.GetMessage(logger, context.TODO(), user, startTime, endTime)
+
+	ctx := context.TODO()
+	isUserExist, err := uc.dbRepo.IsUserExist(logger, ctx, user)
 	if err != nil {
-		if err == domain.ErrUserNotExisted {
+		return nil, domain.ErrUnexpected
+	}
+	if !isUserExist {
+		return nil, domain.ErrUserNotExisted
+	}
+	res, err := uc.dbRepo.GetMessage(logger, ctx, user, startTime, endTime)
+	if err != nil {
+		if err == domain.ErrNoDocuments {
 			return nil, err
 		}
 		logger.Error("mongo db get message failed", zap.Error(err))

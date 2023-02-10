@@ -71,7 +71,7 @@ func (m *mongoRepo) SaveMessage(logger *zap.Logger, ctx context.Context, user, m
 
 func (m *mongoRepo) GetMessage(logger *zap.Logger, ctx context.Context, user string, startDate, endDate int64) (*model.LineDocument, error) {
 
-	col := m.client.Database("message").Collection("line")
+	col := m.client.Database(domain.ConstMongoMessageDB).Collection(domain.ConstMongoLineMessageCollection)
 
 	filter := bson.M{
 		"user": user,
@@ -92,7 +92,7 @@ func (m *mongoRepo) GetMessage(logger *zap.Logger, ctx context.Context, user str
 
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			return nil, domain.ErrUserNotExisted
+			return nil, domain.ErrNoDocuments
 		} else {
 			logger.Error("find user message failed", zap.Error(err))
 			return nil, domain.ErrMongoGetFail

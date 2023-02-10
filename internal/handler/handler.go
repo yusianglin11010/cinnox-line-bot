@@ -81,16 +81,22 @@ func (h *Handler) GetMessage(c *gin.Context) {
 	logger := c.MustGet("logger").(*zap.Logger)
 
 	req := getMessageReq{}
+
 	if err := c.BindQuery(&req); err != nil {
 		logger.Error("bind request failed", zap.Error(err))
 
 		handleError(c, http.StatusBadRequest, domain.ErrInvalidParameter.Error())
 		return
 	}
+	resp := getMessageResp{Status: domain.ConstResponseSuccess, User: req.User}
 
 	lineDocument, err := h.lineBotUseCase.GetMessage(logger, req.User, req.StartTime, req.EndTime)
+
 	if err != nil {
-		if err == domain.ErrUserNotExisted {
+		if err == domain.ErrNoDocuments {
+			c.JSON(http.StatusOK, resp)
+			return
+		} else if err == domain.ErrUserNotExisted {
 			handleError(c, http.StatusBadRequest, err.Error())
 			return
 		} else {
@@ -107,11 +113,7 @@ func (h *Handler) GetMessage(c *gin.Context) {
 			})
 	}
 
-	resp := getMessageResp{
-		Status:   "Success",
-		User:     lineDocument.User,
-		Messages: msgResp,
-	}
+	resp.Messages = msgResp
 
 	c.JSON(http.StatusOK, resp)
 	return
@@ -147,7 +149,7 @@ func (h *Handler) PushMessage(c *gin.Context) {
 	}
 
 	resp := pushMessageResp{
-		Status:  "success",
+		Status:  domain.ConstResponseSuccess,
 		User:    req.User,
 		Content: req.Content,
 	}
@@ -164,7 +166,7 @@ type errResp struct {
 func handleError(c *gin.Context, status int, msg string) {
 
 	c.JSON(status, errResp{
-		Status:  "Failed",
+		Status:  domain.ConstResponseFailed,
 		Message: msg,
 	})
 }
